@@ -1,0 +1,302 @@
+# == FVWM 2 'Vivid' config ==
+# (L) Tomas Mozdren, https://beangreen247.xyz/fvwm
+
+# == Set ImagePath ==
+ImagePath $HOME/.fvwm/icons:+
+
+# == Set up the pager ==
+# 2x3 desktops, no edgescroll, no labels.
+DeskTopSize 2 6
+EdgeScroll 0 0
+#*FvwmPagerBack SlateBlack
+#*FvwmPagerFore #24fd00
+#*FvwmPagerHilight #b3fba7
+#*FvwmPagerFont none
+#*FvwmPagerGeometry -2-2
+#*FvwmPagerLabel FvwmPager
+#*FvwmPager: WindowLabelFormat ""
+#*FvwmPager: SolidSeparators
+#*FvwmPager: MiniIcons
+#*FvwmPager: Ballons All
+#*FvwmPager: Window3DBorders
+
+# == Set up an iconbox ==
+# This will create an iconbox containing one row of icons
+# from top to bottom along the left hand side of the screen.
+# IconBox geometry order: left top right bottom
+Style "*" IconBox 4 4 90 -0, IconGrid 1 1, IconFill Left Top
+Style * IconBackgroundColorset 17
+Style * IconSize 90 70 -1 -1
+Style * IconBackgroundRelief 2
+Style * IconBackgroundPadding 2
+
+# == Window and icon colors ==
+# Menu colors are set in menu style below.
+
+# Active Windows - Dark Cyan / Blue-Green
+Colorset 16 fg white, bg #205a70, fgsh #103040
+Style * HilightColorSet 16
+
+# Inactive Windows - Muted Cyan-Gray
+Colorset 17 fg black, bg #2e5f66, fgsh #6fa7b3
+Style * Colorset 17
+
+# == Fonts ==
+WindowFont "Shadow=1:xft:DejaVu Serif:Bold:size=12"
+IconFont "xft:Arial::size=9"
+MenuStyle * Font "xft:Arial::size=11"
+
+# == Menu style: fast popups, filled submenu triangles ==
+MenuStyle * PopupImmediately, PopdownImmediately, PopupOffset 0 100
+MenuStyle * VerticalItemSpacing 3 3, VerticalTitleSpacing 3 3
+MenuStyle * HilightBack DarkSlateBlue, ActiveFore White
+MenuStyle * TrianglesUseFore, TrianglesSolid
+
+# == Various styles ==
+# Force height of title bars
+TitleStyle Height 25
+
+# Decorate transient windows. A must for GTK apps' sub-windows.
+Style * DecorateTransient
+
+# Focus follows mouse
+Style "*" SloppyFocus
+
+# Snap windows to other windows _and_ screen edges
+Style * SnapAttraction 10 Screen
+
+# 250ms = Click
+ClickTime 250
+
+# Enable solid window moving for all window sizes
+OpaqueMoveSize -1
+
+# Emulate Motif Window Manager hints
+Emulate Mwm
+
+# Window Placement
+Style "*" DumbPlacement
+
+# == Window decors and overrides ==
+Style *            Title, Handles, !MWMFunctions, NoDecorHint, StickyIcon
+Style *            DepressableBorder 
+#Style "FvwmPager"  NoTitle, Icon, Sticky, WindowListSkip, Handles, BorderWidth 7
+Style "xload"      NoTitle, Sticky, WindowListSkip, NoHandles, BorderWidth 7
+Style "xclock"     NoTitle, Sticky, WindowListSkip, NoHandles, BorderWidth 7
+Style gkrellm      NoTitle, Sticky, NoHandles, BorderWidth 7, NeverFocus
+Style Cell         NoTitle, NoHandles, BorderWidth 0, FPLenient
+Style "VIC-II"     NoTitle, NoHandles, BorderWidth 0, FPLenient
+Style feh          NoTitle
+Style steam     NoTitle, NoHandles, BorderWidth 0, FPLenient
+Style "Steam"     NoTitle, NoHandles, BorderWidth 0, FPLenient
+Style "Steamwebhelper"     NoTitle, NoHandles, BorderWidth 0, FPLenient
+Style lutris     NoTitle, NoHandles, BorderWidth 0, FPLenient
+Style "Lutris"     NoTitle, NoHandles, BorderWidth 0, FPLenient
+Style "BeanMon"     NoTitle, Sticky, WindowListSkip, BorderWidth 7
+
+
+# == Mouse bindings ==
+# This will create window buttons and set their listeners
+#  - Leftmost widget: Show menu on single click, close on double click
+Mouse 0     1       A       Menu Window-Ops2 Close
+#  - Rightmost widget: Maximize the window height
+Mouse 0     2       A       Maximize 0 100
+#  - Second widget from the right: Iconify the window
+Mouse 0     4       A       Iconify
+
+# Listeners for root window (the "desktop")
+Mouse 1     R       A       Menu RootMenu
+Mouse 3     R       A       Menu Window-Ops Nop
+Mouse 2     R       A       WindowList
+
+# Raise or lower any window when right clicked anywhere in the border
+Mouse 3     TSIF    A       RaiseLower
+
+# When clicking an icon, de-iconfy it and tile remaining icons
+Mouse 0     I       A       TileIcons
+
+# Handle clicks in window title bar
+Mouse 1     T       A       Maximize-or-Move
+
+# == Init (startup) function ==
+# Start pager and system info tools
+#AddToFunc "InitFunction" I Module FvwmPager
+AddToFunc "InitFunction" I Exec /home/bean/projects/BeanMon/BeanMon &
+AddToFunc "InitFunction" I Exec /home/bean/scripts/execute_as_root.sh &
+AddToFunc "InitFunction" I Exec pavucontrol &
+
+# Merge Xdefaults - why is this not done by the system?
+#AddToFunc "InitFunction" I Exec xrdb -merge $HOME/.Xdefaults &
+
+# Set background color
+AddToFunc "InitFunction" I Exec xsetroot -solid Black &
+
+# Disable touchpad
+AddToFunc "InitFunction" I Exec $HOME/.fvwm/toggle_touchpad &
+
+# == Restart function ==
+# Pager needs to be restarted along with the WM
+AddToFunc "RestartFunction" I Module FvwmPager
+
+# == Window Handling Functions ==
+
+# This will automatically re-tile the icons in the icon box when
+# a window is de-iconified
+# + C = click, + D = double click
+AddToFunc TileIcons
+ + C Iconify off
+ + C All (CurrentPage, Iconic) PlaceAgain Icon
+
+# Move and raise a window
+AddToFunc Move-or-Raise     "M" Raise
++                           "M" Move
++                           "D" Lower
+
+# Resize and raise a window
+AddToFunc Resize-or-Raise   "M" Raise
++                           "M" Resize
++                           "D" Lower
+
+# Maximize window on double-click in title bar.
+# On single click, focus and allow moving it.
+AddToFunc Maximize-or-Move
+ + D Maximize
+ + I Raise
+ + C Focus
+ + M Move
+
+# == Keyboard bindings
+
+# Paging: Windows key + arrows moves to the next desktop
+# in the desired direction
+Key Left        A       4       Scroll -100 0
+Key Right       A       4       Scroll +100  +0
+Key Up          A       4       Scroll +0 -100
+Key Down        A       4       Scroll +0 +100
+
+# Move active window with Windows key + Alt + Arrows
+Key Left    A   14  Move    w-2 w+0
+Key Right   A   14  Move    w+2 w+0
+Key Up      A   14  Move    w+0 w-2
+Key Down    A   14  Move    w+0 w+2
+
+# Open terminal: Windows key + F1
+Key F1      A   4   Exec    xfce4-terminal
+Key F2      A   4   Exec    /home/bean/scripts/cleanMem.sh
+Key F3      A   4   Exec    /home/bean/scripts/soundcore_c30i_connect.sh
+
+# custom shortcuts
+Key Print A N Exec exec maim -s | xclip -selection clipboard -t image/png
+
+# Start file manager: Windows key + e
+Key e       A   4   Exec    pcmanfm &
+
+# Show root menu from anywhere: Windows key + Escape
+Key Escape  A   4   Menu    RootMenu
+
+# == Define Menus
+
+# Root Window Menu for window operations
+AddToMenu Window-Ops "Window Ops"      Title
++                    "Move"            Move-or-Raise
++                    "Resize"          Resize-or-Raise
++                    "Raise"           Raise
++                    "Lower"           Lower
++                    "(Un)Stick"       Stick
++                    "(Un)Maximize"    Maximize
++                    ""                Nop
++                    "Delete"          Delete
++                    "Close"           Close
++                    "Destroy"         Destroy
++                    ""                Nop
++                    "Kill All Wine"   Exec /home/bean/scripts/kill_all_wine.sh && bash /home/bean/scripts/cleanMem.sh && bash /home/bean/scripts/kill_all_wine.sh &
++                    ""                Nop
++                    "Refresh Screen"  Refresh
+
+# Menu for top left hand ("close") button on windows
+AddToMenu Window-Ops2 "Move"       Move
++                     "Resize"     Resize
++                     "(Un)Stick"  Stick
++                     ""           Nop
++                     "Delete"     Delete
++                     "Close"      Close
++                     "Destroy"    Destroy
+
+
+# This is the left-click Root Menu, for launching applications.
+# It will open sub menus defined below.
+AddToMenu RootMenu
++   " Workspace Menu "  Title
++   "Terminal"          Exec xfce4-terminal &
++   "Notes"             Exec leafpad $HOME/docs/notes.txt &
++   ""                  Nop
++   "Internet"          Popup SurfMenu
++   "Gaming"          	Popup GameMenu
++   "Graphics"          Popup GfxMenu
++   "Audio/Video"       Popup MediaMenu
++   "Applications"      Popup UtilsMenu
++   "System"            Popup SysMenu
+
+# Submenu: System tools
+AddToMenu SysMenu
++   "File Manager"  Exec pcmanfm &
++   "Audio Panel"   Exec pavucontrol &
++   "Configure Display"   Exec arandr &
++   "Bluetooth Manager"   Exec blueman-manager &
++   ""              Nop
++   "Restart FVWM"  Restart fvwm2
++   "Exit X11"      Popup QuitMenu #Quit
++   "Power"      Popup PowerMenu
+
+# Submenus to System tools menu
+  # - Confirm exiting X11
+  AddToMenu QuitMenu "Exit X11?" Title
+  +   "No Thanks"    Nop
+  +   "Yes, Exit X"  Quit
+
+  AddToMenu PowerMenu "Power Menu" Title
+  +   "Shutdown"   Exec systemctl poweroff
+  +   "Reboot"  Exec systemctl reboot
+  +   "Suspend"  Exec systemctl suspend
+
+# Internet and Surf menu
+AddToMenu SurfMenu
++   "Brave Browser"       exec brave &
++   "Discord"       exec discord &
++   "FileZilla"       exec filezilla &
+
+# Various utilities and applications menu
+AddToMenu UtilsMenu
++   "LeafPad"        exec leafpad &
++   "Geany"          exec geany &
++   "Lutris"           exec lutris &
++   "Binance"           exec MANGOHUD=0 WINEPREFIX=/home/bean/binance WINEARCH=win64 WINEDLLOVERRIDES='dxgi=d;d3d11=d' VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json VK_LAYER_PATH=/usr/share/vulkan/explicit_layer.d wine "/home/bean/binance/drive_c/Program Files/Binance/Binance.exe" &
+
+# Graphics programs menu
+AddToMenu GfxMenu
++   "Krita"        exec krita &
++   "mtPaint"       exec mtpaint &
+
+# Audio/video software menu
+AddToMenu MediaMenu
++   "VLC"           exec vlc &
++   "OBS Studio"           exec obs &
+
+# Game menu
+AddToMenu GameMenu
++   "Goverlay"           exec goverlay &
++   "Steam"           exec STEAM_RUNTIME=1 STEAM_USE_GLPIPE=0 STEAM_FORCE_DESKTOPUI_SCALING=1 STEAM_COMPAT_SCALE=0.5 steam --disable-gpu --disable-gpu-compositing -no-browser -nochatui -nofriendsui -nobigpicture -no-cef-sandbox -novid -silent -tcp -console -clearbeta -noverifyfiles -nologfiles -nodwrite -noshaders -skipinitialbootstrap -nofasthtml -noreactlogin +open steam://open/minigameslist &
++   "Battle.net"           exec LUTRIS_SKIP_INIT=1 lutris lutris:rungameid/1 &
+
+# game window tweaks
+DestroyFunc AutoGameWindowStyle
+AddToFunc AutoGameWindowStyle
++ I ThisWindow (!Fvwm*) PipeRead 'xprop -id $[w.id] WM_CLASS | grep -Ei "steam|wine|proton|lutris|\.exe" && echo "WindowStyle NoTitle, BorderWidth 0, HandleWidth 0, !Title, !Borders, Maximized"'
+
+DestroyModuleConfig FvwmEvent: *
+*FvwmEvent: add_window AutoGameWindowStyle
+
+Module FvwmEvent
+
+# == End of config file ==
+
